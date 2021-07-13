@@ -1,0 +1,47 @@
+{% load leaflet_tags %}
+<html>
+  <head>
+    {% leaflet_js %} {% leaflet_css %}
+    <style>
+      .leaflet-container {
+        height: 100vh;
+      }
+    </style>
+    <script>
+      var dataurl = '{% url "data" %}'; // path dari urls.py dengan  GeoJSONLayerView;
+      window.addEventListener("map:init", function (event) {
+        var map = event.detail.map;
+        // XMLHttpRequests (fetch) digunakan untuk memanggil GeoJSON dari url
+        // yang kita definisikan pada 'urls.py'
+        console.log(dataurl);
+        fetch(dataurl)
+          .then(function (resp) {
+            console.log(resp);
+            return resp.json();
+          })
+          .then(function (data) {
+            console.log(data);
+            L.geoJson(data, {
+              onEachFeature: function onEachFeature(feature, layer) {
+                var props = feature.properties;
+
+                var content = `<h3>"${props.nama}"</h3>
+                                     <p>${props.jenis}</p>`;
+                layer.bindPopup(content);
+              },
+              style: function (feature) {
+                switch (feature.properties.jenis) {
+                  case "Rumah":
+                    return { color: "#ff0000" };
+                }
+              },
+            }).addTo(map);
+          });
+      });
+    </script>
+  </head>
+
+  <body>
+    {% leaflet_map "main" %}
+  </body>
+</html>
